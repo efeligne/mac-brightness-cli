@@ -1,16 +1,20 @@
-import Foundation
 import CoreGraphics
+import Darwin
+import Foundation
 import IOKit
 import IOKit.graphics
-import Darwin
 
 typealias DisplayID = UInt32
 
 // MARK: - DisplayServices API (Apple Silicon)
-typealias DisplayServicesGetBrightnessFunc = @convention(c) (DisplayID, UnsafeMutablePointer<Float>) -> Int32
+typealias DisplayServicesGetBrightnessFunc = @convention(c) (DisplayID, UnsafeMutablePointer<Float>)
+    -> Int32
 
 func getBrightnessViaDisplayServices() -> Float? {
-    guard let handle = dlopen("/System/Library/PrivateFrameworks/DisplayServices.framework/DisplayServices", RTLD_NOW) else {
+    guard
+        let handle = dlopen(
+            "/System/Library/PrivateFrameworks/DisplayServices.framework/DisplayServices", RTLD_NOW)
+    else {
         return nil
     }
     defer { dlclose(handle) }
@@ -35,9 +39,10 @@ func getBrightnessViaDisplayServices() -> Float? {
 // MARK: - IOKit API (Intel)
 func getBrightnessViaIOKit() -> Float? {
     var iterator: io_iterator_t = 0
-    let result = IOServiceGetMatchingServices(kIOMainPortDefault,
-                                              IOServiceMatching("IODisplayConnect"),
-                                              &iterator)
+    let result = IOServiceGetMatchingServices(
+        kIOMainPortDefault,
+        IOServiceMatching("IODisplayConnect"),
+        &iterator)
     if result != KERN_SUCCESS {
         return nil
     }
@@ -46,7 +51,8 @@ func getBrightnessViaIOKit() -> Float? {
     var brightness: Float = 0.0
 
     while service != 0 {
-        let err = IODisplayGetFloatParameter(service, 0, kIODisplayBrightnessKey as CFString, &brightness)
+        let err = IODisplayGetFloatParameter(
+            service, 0, kIODisplayBrightnessKey as CFString, &brightness)
         IOObjectRelease(service)
         if err == KERN_SUCCESS {
             IOObjectRelease(iterator)
