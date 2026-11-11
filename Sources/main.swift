@@ -7,7 +7,8 @@ import IOKit.graphics
 typealias DisplayID = UInt32
 
 // MARK: - DisplayServices API (Apple Silicon)
-typealias DisplayServicesGetBrightnessFunc = @convention(c) (DisplayID, UnsafeMutablePointer<Float>)
+typealias DisplayServicesGetBrightnessFunc =
+    @convention(c) (DisplayID, UnsafeMutablePointer<Float>)
     -> Int32
 
 func getBrightnessViaDisplayServices() -> Float? {
@@ -23,11 +24,11 @@ func getBrightnessViaDisplayServices() -> Float? {
         return nil
     }
 
-    let fn = unsafeBitCast(sym, to: DisplayServicesGetBrightnessFunc.self)
+    let fun = unsafeBitCast(sym, to: DisplayServicesGetBrightnessFunc.self)
 
     let displayID = CGMainDisplayID()
     var brightness: Float = 0.0
-    let err = fn(displayID, &brightness)
+    let err = fun(displayID, &brightness)
 
     if err == 0 {
         return brightness
@@ -67,10 +68,10 @@ func getBrightnessViaIOKit() -> Float? {
 
 // MARK: - Universal
 func getMainDisplayBrightnessPercent() -> Int? {
-    if let b = getBrightnessViaDisplayServices() {
-        return Int(round(b * 100))
-    } else if let b = getBrightnessViaIOKit() {
-        return Int(round(b * 100))
+    if let brightness = getBrightnessViaDisplayServices() {
+        return Int(round(brightness * 100))
+    } else if let brightness = getBrightnessViaIOKit() {
+        return Int(round(brightness * 100))
     } else {
         return nil
     }
